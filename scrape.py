@@ -62,10 +62,10 @@ if __name__ == "__main__":
         book_url = URL.format(book=get_url_book_name(book))
         
         df = scrape_chapters(book_url)
-        df['book'] = book  # Add book name column
+        df.insert(0, 'book', book)
         book_dfs.append(df)
 
     all_books_df = pd.concat(book_dfs, ignore_index=True)
     print(all_books_df.head())
 
-    all_books_df.to_csv("headings.csv", index=False)
+    all_books_df.to_csv("headings.csv", sep="|", index=False)

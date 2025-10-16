@@ -36,29 +36,41 @@ def validate(guess, answer):
     return norm_guess == norm_answer
 
 if __name__ == "__main__":
+
+    import argparse
+    parser = argparse.ArgumentParser(description="Scripture Reference Quiz")
+    parser.add_argument('--book', type=str, default='genesis')
+    args = parser.parse_args()
+    book = args.book.lower()
     
     data = pd.read_csv("headings.csv", sep="|")
-
+    book_headings = data[data["book"].str.lower()==book]
     try:
         while True:
-            # Get a random row
-            row = data.sample(n=1).iloc[0]
+            # Get a random row for the specified book
+            row = book_headings.sample(n=1).iloc[0]
 
             # Extract relevant fields
-            book = row['book']
+            # book = row['book']
             chapter = int(row['chapter'])
             verse = int(row['verse'])
             heading = row['heading']
 
             # Prompt user for a guess
-            guess = input(f"Guess the reference '{heading}': ")
-            answer = f"{book} {chapter}:{verse}"
-
-            # Validate the guess
-            if validate(guess, answer):
+            chapter_guess = input(f"'{heading}' is found in {book} ")
+            chapter_guess = int(chapter_guess.strip())
+            
+            if chapter_guess == chapter:
                 print("Correct!")
             else:
-                print(f"Incorrect! The correct answer is {book} {chapter}:{verse}.")
+                print(f"Incorrect! The correct answer is {book} {chapter}.")
+            # answer = f"{book} {chapter}:{verse}"
+
+            # Validate the guess
+            # if validate(guess, answer):
+            #     print("Correct!")
+            # else:
+            #     print(f"Incorrect! The correct answer is {book} {chapter}:{verse}.")
 
     except KeyboardInterrupt:
         print("Goodbye!")

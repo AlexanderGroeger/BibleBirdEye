@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+from util import sample_less_likely
 
 def normalize(reference):
     """
@@ -37,18 +38,42 @@ def validate(guess, answer):
 
 if __name__ == "__main__":
 
-    import argparse
-    parser = argparse.ArgumentParser(description="Scripture Reference Quiz")
-    parser.add_argument('--book', type=str, default='genesis')
-    args = parser.parse_args()
-    book = args.book.lower()
-    
     data = pd.read_csv("headings.csv", sep="|")
-    book_headings = data[data["book"].str.lower()==book]
+
+    while True:
+        book = input("Enter a book to memorize: ")
+        if not isinstance(book, str):
+            print("No book provided. Please try again.")
+            continue
+
+        book = book.strip().lower()
+        
+        if book not in data['book'].str.lower().values:
+            print(f"Book '{book}' not found in data. Please try again.")
+            continue
+        
+        book_headings = data[data["book"].str.lower()==book]
+        break
+
+    while True:
+        progress_file = f"{book.replace(' ', '_')}_progress.csv"
+        try:
+            book_progress = pd.read_csv(progress_file)
+            if book_progress.empty:
+                raise FileNotFoundError
+            break
+        except FileNotFoundError:
+            print(f"Progress file '{progress_file}' not found or empty. Initializing new progress.")
+            book_progress = book_headings[['book', 'chapter', 'verse', 'heading']].copy()
+            book_progress['attempts'] = 0
+            book_progress['correct'] = 0
+            book_progress.to_csv(progress_file, index=False)
+            break
+    
     try:
         while True:
             # Get a random row for the specified book
-            row = book_headings.sample(n=1).iloc[0]
+            row = book_headings.iloc[sample_less_likely(book_progress)]
 
             # Extract relevant fields
             # book = row['book']
@@ -58,6 +83,9 @@ if __name__ == "__main__":
 
             # Prompt user for a guess
             chapter_guess = input(f"'{heading}' is found in {book} ")
+            if not chapter_guess:
+                print("No input provided. Exiting...")
+                break
             chapter_guess = int(chapter_guess.strip())
             
             if chapter_guess == chapter:

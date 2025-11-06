@@ -73,7 +73,8 @@ if __name__ == "__main__":
     try:
         while True:
             # Get a random row for the specified book
-            row = book_headings.iloc[sample_less_likely(book_progress)]
+            row_id = sample_less_likely(book_progress)
+            row = book_headings.iloc[row_id]
 
             # Extract relevant fields
             # book = row['book']
@@ -89,9 +90,11 @@ if __name__ == "__main__":
             chapter_guess = int(chapter_guess.strip())
             
             if chapter_guess == chapter:
+                book_progress.loc[row_id,'correct'] += 1
                 print("Correct!")
             else:
                 print(f"Incorrect! The correct answer is {book} {chapter}.")
+            book_progress.loc[row_id,'attempts'] += 1
             # answer = f"{book} {chapter}:{verse}"
 
             # Validate the guess
@@ -102,3 +105,5 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         print("Goodbye!")
+
+    book_progress.to_csv(progress_file, index=False)
